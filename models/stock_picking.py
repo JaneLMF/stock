@@ -4,13 +4,16 @@
 from collections import namedtuple
 import json
 import time
-
+from fulfillment import FulfillmentInboundShipment
 from odoo import api, fields, models, _
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
 from odoo.tools.float_utils import float_compare
 from odoo.addons.procurement.models import procurement
 from odoo.exceptions import UserError
 
+import logging
+
+_logger = logging.getLogger(__name__)
 
 class PickingType(models.Model):
     _name = "stock.picking.type"
@@ -790,6 +793,7 @@ class Picking(models.Model):
 
     @api.multi
     def do_new_transfer(self):
+        _logger.warning("do_new_transfer beging")
         for pick in self:
             if pick.state == 'done':
                 raise UserError(_('The pick is already validated'))
@@ -883,6 +887,7 @@ class Picking(models.Model):
                 picking.do_recompute_remaining_quantities()
 
             # split move lines if needed
+            products = []
             for move in picking.move_lines:
                 rounding = move.product_id.uom_id.rounding
                 remaining_qty = move.remaining_qty
@@ -901,6 +906,12 @@ class Picking(models.Model):
                     todo_moves |= move
                     # Assign move as it was assigned before
                     toassign_moves |= new_move
+                products.append({'asin': move.asin, 'sellerSKU': move.sku, 'condition': move.condition, 'quantity': int(move.product_uom_qty)})
+            if products and len(products) > 0:
+                _logger.warning(products)
+                fm = FulfillmentInboundShipment()
+                shipments = fm.createShipments(products)
+                _logger.warning('Result: ' + str(shipments))
 
             # TDE FIXME: do_only_split does not seem used anymore
             if todo_moves and not self.env.context.get('do_only_split'):

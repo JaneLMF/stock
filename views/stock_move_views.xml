@@ -89,6 +89,9 @@
                     <field name="location_dest_id" invisible="1"/>
                     <field name="remaining_qty" invisible="1"/>
                     <field name="state"/>
+                    <field name="sku"/>
+                    <field name="asin"/>
+                    <field name="condition"/>
                 </tree>
             </field>
         </record>

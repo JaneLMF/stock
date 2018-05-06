@@ -152,6 +152,28 @@ class StockMove(models.Model):
     route_ids = fields.Many2many('stock.location.route', 'stock_location_route_move', 'move_id', 'route_id', 'Destination route', help="Preferred route to be followed by the procurement order")
     warehouse_id = fields.Many2one('stock.warehouse', 'Warehouse', help="Technical field depicting the warehouse to consider for the route selection on the next procurement (if any).")
 
+    sku = fields.Char(string="sku")
+    asin = fields.Char(string="asin")
+    condition = fields.Selection([
+        ('NewItem', 'NewItem'),
+        ('NewWithWarranty', 'NewWithWarranty'),
+        ('NewOEM', 'NewOEM'),
+        ('NewOpenBox', 'NewOpenBox'),
+        ('UsedLikeNew', 'UsedLikeNew'),
+        ('UsedVeryGood', 'UsedVeryGood'),
+        ('UsedGood', 'UsedGood'),
+        ('UsedAcceptable', 'UsedAcceptable'),
+        ('UsedPoor', 'UsedPoor'),
+        ('UsedRefurbished', 'UsedRefurbished'),
+        ('CollectibleLikeNew', 'CollectibleLikeNew'),
+        ('CollectibleVeryGood', 'CollectibleVeryGood'),
+        ('CollectibleGood', 'CollectibleGood'),
+        ('CollectibleAcceptable', 'CollectibleAcceptable'),
+        ('CollectiblePoor', 'CollectiblePoor'),
+        ('RefurbishedWithWarranty', 'RefurbishedWithWarranty'),
+        ('Refurbished', 'Refurbished'),
+        ('Club', 'Club')], "condition", default='NewItem')
+
     @api.one
     @api.depends('product_id', 'product_uom', 'product_uom_qty')
     def _compute_product_qty(self):
