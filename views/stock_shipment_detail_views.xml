@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<record id="view_shipment_detail_tree" model="ir.ui.view">
+	    <field name="name">stock.shipment.detail.tree</field>
+	    <field name="model">stock.shipment.detail</field>
+	    <field name="arch" type="xml">
+	        <tree string="ShipentDetail" create="0">
+	            <field name="create_date"/>
+	            <field name="asin"/>
+	            <field name="sku"/>
+	            <field name="condition"/>
+	            <field name="quantity"/>
+	            <field name="aws_received"/>
+	            <field name="shipment_id"/>
+	        </tree>
+	    </field>
+	</record>
+
+	<record id="act_product_stock_shipment_detail_open" model="ir.actions.act_window">
+	    <field name="context">{'search_default_product_id': active_id, 'default_product_id': active_id}</field>
+	    <field name="name">shipment_details</field>
+	    <field name="res_model">stock.shipment.detail</field>
+	    <field name="view_id" ref="view_shipment_detail_tree"/>
+	</record>
+
+	<record model="ir.actions.act_window" id="view_shipment_detail_list">
+		<field name="name">shipment details</field>
+		<field name="res_model">stock.shipment.detail</field>
+		<field name="view_type">form</field>
+		<field name="view_mode">tree,form,graph</field>
+	</record>
+
+	<!-- <menuitem action="view_shipment_detail_list" id="shipemt_detail_menu" parent="stock.menu_warehouse_report" sequence="130"/> -->
+
+</odoo>

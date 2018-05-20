@@ -19,4 +19,5 @@ import stock_quant
 import stock_warehouse
 import stock_scrap
 import web_planner
-import fulfillment
+import mws_impl
+import stock_shipment_detail

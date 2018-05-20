@@ -4,7 +4,7 @@
 from collections import namedtuple
 import json
 import time
-from fulfillment import FulfillmentInboundShipment
+from mws_impl import CreateInboundShipment
 from odoo import api, fields, models, _
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
 from odoo.tools.float_utils import float_compare
@@ -906,12 +906,27 @@ class Picking(models.Model):
                     todo_moves |= move
                     # Assign move as it was assigned before
                     toassign_moves |= new_move
-                products.append({'asin': move.asin, 'sellerSKU': move.sku, 'condition': move.condition, 'quantity': int(move.product_uom_qty)})
+                products.append({'product_id': move.product_id, 'asin': move.asin, 'sellerSKU': move.sku, 'condition': move.condition, 'quantity': int(move.product_uom_qty)})
             if products and len(products) > 0:
                 _logger.warning(products)
-                fm = FulfillmentInboundShipment()
-                shipments = fm.createShipments(products)
+                c_shipment = CreateInboundShipment()
+                shipments = c_shipment.createShipments(products)
                 _logger.warning('Result: ' + str(shipments))
+                for shipment in shipments:
+                    for p in shipment['products']:
+                        p_sku = p.get('sellerSKU')
+                        find_products = [x for x in products if x['sellerSKU'] == p_sku]
+                        find_product = find_products[0]
+                        d = {
+                            'product_id': find_product.get('product_id').id,
+                            'sku': p_sku,
+                            'asin': find_product.get('asin'),
+                            'condition': find_product.get('condition'),
+                            'quantity': p.get('quantity'),
+                            'shipment_id': shipment.get('shipmentId')
+                        }
+                        # find_product.get('product_id').write({'shipments': [(0, 0, d)]})
+                        self.env['stock.shipment.detail'].create(d)
 
             # TDE FIXME: do_only_split does not seem used anymore
             if todo_moves and not self.env.context.get('do_only_split'):

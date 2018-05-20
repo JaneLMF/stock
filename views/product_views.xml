@@ -169,6 +169,20 @@
             </field>
         </record>
 
+        <record model="ir.ui.view" id="product_fba_form_view">
+            <field name="name">product.fba</field>
+            <!-- <field name="inherit_id" ref="product.product_template_form_view"/> -->
+            <field name="model">product.template</field>
+            <field name="arch" type="xml">
+                <notebook position="inside">
+                    <page string="FBA">
+                        <field name="shipments" options="{'reload_on_button': True}" mode="tree,kanban" context="{'tree_view_ref':'stock.view_shipment_detail_tree'}">
+                        </field>
+                    </page>
+                </notebook>
+            </field>
+        </record>
+
         <record id="product_template_view_form_procurement_button" model="ir.ui.view">
             <field name="name">product.template.stock.stat.button.group</field>
             <field name="model">product.template</field>

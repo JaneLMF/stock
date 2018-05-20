@@ -425,6 +425,7 @@ class ProductTemplate(models.Model):
     route_from_categ_ids = fields.Many2many(
         relation="stock.location.route", string="Category Routes",
         related='categ_id.total_route_ids')
+    shipments = fields.One2many('stock.shipment.detail', 'product_tmpl_id', string='product shipment')
 
     def _compute_quantities(self):
         res = self._compute_quantities_dict()
