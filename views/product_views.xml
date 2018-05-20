@@ -171,7 +171,7 @@
 
         <record model="ir.ui.view" id="product_fba_form_view">
             <field name="name">product.fba</field>
-            <!-- <field name="inherit_id" ref="product.product_template_form_view"/> -->
+            <field name="inherit_id" ref="product.product_template_form_view"/>
             <field name="model">product.template</field>
             <field name="arch" type="xml">
                 <notebook position="inside">
