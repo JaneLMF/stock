@@ -5,8 +5,8 @@
 	    <field name="model">stock.shipment.detail</field>
 	    <field name="arch" type="xml">
 	        <tree string="ShipentDetail" create="0">
-	            <field name="create_date"/>
-	            <field name="asin"/>
+	            <field name="s_create_date"/>
+            	<field name="asin_url" widget="url"/>
 	            <field name="sku"/>
 	            <field name="condition"/>
 	            <field name="quantity"/>

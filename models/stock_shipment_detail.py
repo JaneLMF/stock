@@ -2,6 +2,7 @@
 
 from odoo import api, fields, tools, models, _
 from mws_impl import ListInboundShipmentItems
+from datetime import datetime
 
 import threading
 import random
@@ -19,8 +20,10 @@ class ShipmentDetail(models.Model):
 		related='product_id.product_tmpl_id',
 		help="Technical: used in views")
 	create_date = fields.Datetime(string='create time', default=fields.Datetime.now)
+	s_create_date = fields.Char(string='create day', compute='_compute_create_date')
 	sku = fields.Char(string="sku")
 	asin = fields.Char(string="asin")
+	asin_url = fields.Char(string="asin_url", compute='_compute_asin_url')
 	condition = fields.Char(string="condition")
 	quantity = fields.Float(string='shipment quantity')
 	aws_received = fields.Float(string='shipment reveived quantity', compute='_compute_aws_reeived')
@@ -56,3 +59,17 @@ class ShipmentDetail(models.Model):
 		download_thread.start()
 		return True
 
+	def _compute_create_date(self):
+		for record in self:
+			try:
+				t = datetime.strptime(record.create_date, '%d-%m-%Y %H:%M:%S').strftime('%m-%d-%Y')
+			except Exception as e:
+				t = datetime.strptime(record.create_date, '%Y-%m-%d %H:%M:%S').strftime('%m-%d-%Y')
+			record.s_create_date = t
+
+	@api.depends('asin')
+	def _compute_asin_url(self):
+		for record in self:
+			_logger.info(record.asin);
+			# record.asin_url = '<a href="%s%s">%s</a>' % ('https://www.amazon.com/dp/', record.asin, record.asin)
+			record.asin_url = 'https://www.amazon.com/dp/%s' % record.asin
