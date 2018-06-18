@@ -162,6 +162,9 @@
                         <group name="moved_quants_grp" string="Moved Quants" colspan="4" groups="base.group_no_one" attrs="{'invisible': [('state', '!=', 'done')]}">
                             <field name="quant_ids" readonly="1" nolabel="1"/>
                         </group>
+                        <group name="shipment_grp" string="ShipmentDetails">
+                            <field name="shipments" />
+                        </group>
                     </group>
                 </sheet>
                 </form>
