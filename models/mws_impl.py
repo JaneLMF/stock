@@ -205,10 +205,11 @@ class CreateInboundShipment(MwsRequest):
 		c_plans = CreateInboundShipmentPlan()
 		plans = c_plans.createInboundShipmentPlan(products, address)
 		shipments = []
-		for plan in plans:
-			shipment = self.createInboundShipment(plan['shipmentId'], plan['destinationCenterId'], address, plan['products'])
-			shipment['products'] = plan['products']
-			shipments.append(shipment)
+		if plans:
+			for plan in plans:
+				shipment = self.createInboundShipment(plan['shipmentId'], plan['destinationCenterId'], address, plan['products'])
+				shipment['products'] = plan['products']
+				shipments.append(shipment)
 		return shipments
 
 class ListInboundShipmentItemsByNextToken(MwsRequest):
@@ -273,7 +274,6 @@ class ListInboundShipmentItems(MwsRequest):
 		return shipments
 
 if (__name__ == '__main__'):
-
 	# products = [{'sellerSKU': '81A40025US_140', 'quantity': 500, 'asin': 'B077RGJ6S7', 'condition': 'NewItem'},
 	# {'sellerSKU': 'AN515-51-55WL_612', 'quantity': 500, 'asin': 'B074Q54GSR', 'condition': 'NewItem'}]
 
