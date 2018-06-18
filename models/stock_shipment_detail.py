@@ -29,6 +29,7 @@ class ShipmentDetail(models.Model):
 	aws_received = fields.Float(string='shipment reveived quantity', compute='_compute_aws_reeived')
 	shipment_id = fields.Char(string="shipment id")
 	state = fields.Char(string="shipment state")
+	matched_received = fields.Boolean(string="aws received have bee matched quantity", default=False)
 
 	def _full_aws_received(self):
 		with api.Environment.manage():
@@ -41,7 +42,10 @@ class ShipmentDetail(models.Model):
 				for r in self:
 					products = listShipment.getShipmentsByShipmentId(r.shipment_id)
 					sku_products = [x for x in products if x['SellerSKU'] == r.sku]
-					r.aws_received = sku_products[0].get('QuantityReceived')
+					quantity_received = sku_products[0].get('QuantityReceived')
+					if quantity_received == r.quantity:
+						r.matched_received = True
+					r.aws_received = quantity_received
 					changed = True
 				if changed:
 					new_cr.commit()
@@ -51,13 +55,15 @@ class ShipmentDetail(models.Model):
 				new_cr.close()
 			return {}
 
-	@api.depends('sku', 'shipment_id', 'product_id')	
+	@api.depends('matched_received', 'sku', 'shipment_id', 'product_id')	
 	def _compute_aws_reeived(self):
-		_logger.info('enter the _compute_aws_reeived')
-		# _logger.warning("_compute_aws_reeived find_product product_id " + str(self.product_id))
-		download_thread = threading.Thread(target=self._full_aws_received)
-		download_thread.start()
-		return True
+		for record in self:
+			_logger.info('enter the _compute_aws_reeived')
+			# _logger.warning("_compute_aws_reeived find_product product_id " + str(self.product_id))
+			if not record.matched_received:
+				download_thread = threading.Thread(target=self._full_aws_received)
+				download_thread.start()
+			return True
 
 	def _compute_create_date(self):
 		for record in self:
