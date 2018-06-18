@@ -176,7 +176,7 @@
             <field name="arch" type="xml">
                 <notebook position="inside">
                     <page string="FBA">
-                        <field name="shipments" options="{'reload_on_button': True}" mode="tree,kanban" context="{'tree_view_ref':'stock.view_shipment_detail_tree'}">
+                        <field name="p_stock_move_ids" options="{'reload_on_button': True}" mode="tree,kanban" context="{'tree_view_ref':'stock.view_move_tree_for_fba'}">
                         </field>
                     </page>
                 </notebook>

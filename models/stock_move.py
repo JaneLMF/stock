@@ -11,7 +11,9 @@ from odoo.addons.procurement.models import procurement
 from odoo.exceptions import UserError
 from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
 from odoo.tools.float_utils import float_compare, float_round, float_is_zero
+import logging
 
+_logger = logging.getLogger(__name__)
 
 class StockMove(models.Model):
     _name = "stock.move"
@@ -154,6 +156,7 @@ class StockMove(models.Model):
 
     sku = fields.Char(string="sku")
     asin = fields.Char(string="asin")
+    asin_url = fields.Char(string="asin_url", compute='_compute_asin_url')
     condition = fields.Selection([
         ('NewItem', 'NewItem'),
         ('NewWithWarranty', 'NewWithWarranty'),
@@ -173,6 +176,33 @@ class StockMove(models.Model):
         ('RefurbishedWithWarranty', 'RefurbishedWithWarranty'),
         ('Refurbished', 'Refurbished'),
         ('Club', 'Club')], "condition", default='NewItem')
+    shipments = fields.One2many('stock.shipment.detail', 'move_id', 'shipent detail')
+    show_date = fields.Char(string='Date', compute='_compute_date')
+    aws_received_qty = fields.Float(string='reveived', compute='_compute_aws_reeived')
+
+    @api.depends('shipments')
+    def _compute_aws_reeived(self):
+        for record in self:
+            m_shipments = record.shipments
+            amount = 0
+            for s in m_shipments:
+               amount += s.aws_received
+            record.aws_received_qty = amount
+
+    @api.depends('asin')
+    def _compute_asin_url(self):
+        for record in self:
+            # record.asin_url = '<a href="%s%s">%s</a>' % ('https://www.amazon.com/dp/', record.asin, record.asin)
+            record.asin_url = 'https://www.amazon.com/dp/%s' % record.asin
+
+    @api.depends('date')
+    def _compute_date(self):
+        for record in self:
+            try:
+                t = datetime.strptime(record.create_date, '%d-%m-%Y %H:%M:%S').strftime('%m-%d-%Y')
+            except Exception as e:
+                t = datetime.strptime(record.create_date, '%Y-%m-%d %H:%M:%S').strftime('%m-%d-%Y')
+            record.show_date = t
 
     @api.one
     @api.depends('product_id', 'product_uom', 'product_uom_qty')

@@ -69,6 +69,23 @@
             </field>
         </record>
 
+        <record id="view_move_tree_for_fba" model="ir.ui.view">
+            <field name="name">stock.move.fba.tree</field>
+            <field name="model">stock.move</field>
+            <field eval="12" name="priority"/>
+            <field name="arch" type="xml">
+                <tree string="move_fba" create="0">
+                    <field name="show_date"/>
+                    <field name="asin_url" widget="url"/>
+                    <field name="sku"/>
+                    <field name="condition"/>
+                    <field name="product_uom_qty"/>
+                    <field name="aws_received_qty"/>
+                    <field name="state"/>
+                </tree>
+            </field>
+        </record>
+
         <record id="view_move_picking_tree" model="ir.ui.view">
             <field name="name">stock.move.tree</field>
             <field name="model">stock.move</field>
@@ -233,6 +250,13 @@
             <field name="name">Moves</field>
             <field name="res_model">stock.move</field>
             <field name="view_id" ref="stock.view_move_tree"/>
+        </record>
+
+        <record id="act_product_stock_move_open_for_fba" model="ir.actions.act_window">
+            <!-- <field name="context">{'search_default_product_id': active_id, 'default_product_id': active_id}</field> -->
+            <field name="name">Moves_fba</field>
+            <field name="res_model">stock.move</field>
+            <field name="view_id" ref="stock.view_move_tree_for_fba"/>
         </record>
 
         <record id="stock_move_action" model="ir.actions.act_window">

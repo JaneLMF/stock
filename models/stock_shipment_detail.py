@@ -19,6 +19,8 @@ class ShipmentDetail(models.Model):
 		'product.template', 'Product Template',
 		related='product_id.product_tmpl_id',
 		help="Technical: used in views")
+	move_id = fields.Many2one(
+		'stock.move', 'Move')
 	create_date = fields.Datetime(string='create time', default=fields.Datetime.now)
 	s_create_date = fields.Char(string='create day', compute='_compute_create_date')
 	sku = fields.Char(string="sku")

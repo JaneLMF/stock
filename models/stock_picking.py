@@ -888,7 +888,7 @@ class Picking(models.Model):
 
             # split move lines if needed
             products = []
-            for move in picking.move_lines:
+            for (index, move) in enumerate(picking.move_lines):
                 rounding = move.product_id.uom_id.rounding
                 remaining_qty = move.remaining_qty
                 if move.state in ('done', 'cancel'):
@@ -906,7 +906,7 @@ class Picking(models.Model):
                     todo_moves |= move
                     # Assign move as it was assigned before
                     toassign_moves |= new_move
-                products.append({'product_id': move.product_id, 'asin': move.asin, 'sellerSKU': move.sku, 'condition': move.condition, 'quantity': int(move.product_uom_qty)})
+                products.append({'product_id': move.product_id, 'move_index': index, 'asin': move.asin, 'sellerSKU': move.sku, 'condition': move.condition, 'quantity': int(move.product_uom_qty)})
             if products and len(products) > 0:
                 _logger.warning(products)
                 c_shipment = CreateInboundShipment()
@@ -925,8 +925,9 @@ class Picking(models.Model):
                             'quantity': p.get('quantity'),
                             'shipment_id': shipment.get('shipmentId')
                         }
-                        # find_product.get('product_id').write({'shipments': [(0, 0, d)]})
-                        self.env['stock.shipment.detail'].create(d)
+                        # detail_id = self.env['stock.shipment.detail'].create(d)
+                        m_index = find_product.get('move_index')
+                        picking.move_lines[m_index].write({'shipments': [(0, 0, d)]})
 
             # TDE FIXME: do_only_split does not seem used anymore
             if todo_moves and not self.env.context.get('do_only_split'):
