@@ -427,6 +427,16 @@ class ProductTemplate(models.Model):
         related='categ_id.total_route_ids')
     shipments = fields.One2many('stock.shipment.detail', 'product_tmpl_id', string='product shipment')
     p_stock_move_ids = fields.One2many('stock.move', 'product_tmpl_id', help='Technical: used to show fba.')
+    asin = fields.One2many('product.asin', 'product_tmpl_id')
+    asin_increase = fields.Float(string="Increase", compute='_compute_increase', store=True)
+
+    def _compute_increase(self):
+        for r in self:
+            hight_increase = 0.0
+            for a in r.asin:
+                if a.increase > hight_increase:
+                    hight_increase = a.increase
+            r.asin_increase = hight_increase
 
     def _compute_quantities(self):
         res = self._compute_quantities_dict()
@@ -568,3 +578,16 @@ class ProductCategory(models.Model):
             category = category.parent_id
             routes |= category.route_ids
         self.total_route_ids = routes
+
+class ProductAsin(models.Model):
+    _name = "product.asin"
+
+    asin = fields.Char(string="Product Asin")
+    c_time = fields.Datetime(string='Create Time', default=fields.Datetime.now)
+    u_time = fields.Datetime(string='Create Time')
+    rank = fields.Float(string='Best Sell Rank')
+    increase = fields.Float(string='Product Pric Increase')
+    product_tmpl_id = fields.Many2one(
+        'product.template', 'Product Template',
+        help="Technical: used in views")
+
