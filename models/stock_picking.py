@@ -907,9 +907,12 @@ class Picking(models.Model):
                     # Assign move as it was assigned before
                     toassign_moves |= new_move
                 if move.asin and move.sku:
-                    move.asin = move.asin.strip()
-                    move.sku = move.sku.strip()
-                    products.append({'product_id': move.product_id, 'move_index': index, 'asin': move.asin, 'sellerSKU': move.sku, 'condition': move.condition, 'quantity': int(move.product_uom_qty)})
+                    if (not move.sku.asin_id or move.sku.asin_id.id != move.asin.id):
+                        # move.sku.write({'asin_id': move.asin.id})
+                        move.sku.asin_id = move.asin.id
+                    # move.asin.write({'u_time': fields.Datetime.now()})
+                    move.asin.u_time = fields.Datetime.now()
+                    products.append({'product_id': move.product_id, 'move_index': index, 'asin': move.asin.name, 'sellerSKU': move.sku.name, 'condition': move.condition, 'quantity': int(move.product_uom_qty)})
             if products and len(products) > 0:
                 _logger.warning(products)
                 c_shipment = CreateInboundShipment()

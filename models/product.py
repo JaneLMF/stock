@@ -3,7 +3,7 @@
 
 from odoo import api, fields, models, _
 from odoo.addons import decimal_precision as dp
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
 from odoo.tools.float_utils import float_round
 from datetime import datetime
 import operator as py_operator
@@ -581,13 +581,42 @@ class ProductCategory(models.Model):
 
 class ProductAsin(models.Model):
     _name = "product.asin"
+    _order = "u_time desc"
 
-    asin = fields.Char(string="Product Asin")
+    name = fields.Char(string="Product Asin", required=True)
+    asin_link = fields.Char(string="Link", compute='_compute_asin_link')
     c_time = fields.Datetime(string='Create Time', default=fields.Datetime.now)
-    u_time = fields.Datetime(string='Create Time')
+    u_time = fields.Datetime(string='Last Use Time')
     rank = fields.Float(string='Best Sell Rank')
     increase = fields.Float(string='Product Pric Increase')
     product_tmpl_id = fields.Many2one(
         'product.template', 'Product Template',
         help="Technical: used in views")
 
+    @api.depends('name')
+    def _compute_asin_link(self):
+        for r in self:
+            r.asin_link = 'https://www.amazon.com/dp/%s' % r.name
+
+    @api.constrains('name')
+    def _check_asin(self):
+        if self.name.startswith(' '):
+            raise ValidationError(_("Asin '%s' can't startswith spaces." % self.name))
+        elif self.name.endswith(' '):
+            raise ValidationError(_("Asin '%s' can't endswith spaces." % self.name))
+        return True
+
+class ProductSku(models.Model):
+    _name = "product.sku"
+
+    name = fields.Char(string="Product Sku", required=True)
+    asin_id = fields.Many2one('product.asin', 'Product Asin')
+    c_time = fields.Datetime(string='Create Time', default=fields.Datetime.now)
+
+    @api.constrains('name')
+    def _check_sku(self):
+        if self.name.startswith(' '):
+            raise ValidationError(_("Sku '%s' can't startswith spaces." % self.name))
+        elif self.name.endswith(' '):
+            raise ValidationError(_("Sku '%s' can't endswith spaces." % self.name))
+        return True

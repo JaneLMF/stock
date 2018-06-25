@@ -154,8 +154,8 @@ class StockMove(models.Model):
     route_ids = fields.Many2many('stock.location.route', 'stock_location_route_move', 'move_id', 'route_id', 'Destination route', help="Preferred route to be followed by the procurement order")
     warehouse_id = fields.Many2one('stock.warehouse', 'Warehouse', help="Technical field depicting the warehouse to consider for the route selection on the next procurement (if any).")
 
-    sku = fields.Char(string="sku")
-    asin = fields.Char(string="asin")
+    sku = fields.Many2one('product.sku', string="sku")
+    asin = fields.Many2one('product.asin', string="asin")
     asin_url = fields.Char(string="asin_url", compute='_compute_asin_url')
     condition = fields.Selection([
         ('NewItem', 'NewItem'),
@@ -193,7 +193,7 @@ class StockMove(models.Model):
     def _compute_asin_url(self):
         for record in self:
             # record.asin_url = '<a href="%s%s">%s</a>' % ('https://www.amazon.com/dp/', record.asin, record.asin)
-            record.asin_url = 'https://www.amazon.com/dp/%s' % record.asin
+            record.asin_url = 'https://www.amazon.com/dp/%s' % record.asin.name
 
     @api.depends('date')
     def _compute_date(self):
