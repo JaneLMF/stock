@@ -156,7 +156,7 @@ class StockMove(models.Model):
 
     sku = fields.Many2one('product.sku', string="sku")
     asin = fields.Many2one('product.asin', string="asin")
-    asin_url = fields.Char(string="asin_url", compute='_compute_asin_url')
+    asin_url = fields.Char(string="asin_url", compute='_compute_asin_url', store=True)
     condition = fields.Selection([
         ('NewItem', 'NewItem'),
         ('NewWithWarranty', 'NewWithWarranty'),
@@ -177,7 +177,7 @@ class StockMove(models.Model):
         ('Refurbished', 'Refurbished'),
         ('Club', 'Club')], "condition", default='NewItem')
     shipments = fields.One2many('stock.shipment.detail', 'move_id', 'shipent detail')
-    show_date = fields.Char(string='Date', compute='_compute_date')
+    show_date = fields.Char(string='Date', compute='_compute_date', store=True)
     aws_received_qty = fields.Float(string='reveived', compute='_compute_aws_reeived')
 
     @api.depends('shipments')

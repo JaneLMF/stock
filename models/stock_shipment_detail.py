@@ -22,10 +22,10 @@ class ShipmentDetail(models.Model):
 	move_id = fields.Many2one(
 		'stock.move', 'Move')
 	create_date = fields.Datetime(string='create time', default=fields.Datetime.now)
-	s_create_date = fields.Char(string='create day', compute='_compute_create_date')
+	s_create_date = fields.Char(string='create day', compute='_compute_create_date', store=True)
 	sku = fields.Char(string="sku")
 	asin = fields.Char(string="asin")
-	asin_url = fields.Char(string="asin_url", compute='_compute_asin_url')
+	asin_url = fields.Char(string="asin_url", compute='_compute_asin_url', store=True)
 	condition = fields.Char(string="condition")
 	quantity = fields.Float(string='shipment quantity')
 	aws_received = fields.Float(string='shipment reveived quantity', compute='_compute_aws_reeived')
