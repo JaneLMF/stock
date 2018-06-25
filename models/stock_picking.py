@@ -910,6 +910,8 @@ class Picking(models.Model):
                     if (not move.sku.asin_id or move.sku.asin_id.id != move.asin.id):
                         # move.sku.write({'asin_id': move.asin.id})
                         move.sku.asin_id = move.asin.id
+                    if (not move.asin.product_tmpl_id or move.asin.product_tmpl_id.id != move.product_tmpl_id.id):
+                        move.asin.product_tmpl_id = move.product_tmpl_id.id
                     # move.asin.write({'u_time': fields.Datetime.now()})
                     move.asin.u_time = fields.Datetime.now()
                     products.append({'product_id': move.product_id, 'move_index': index, 'asin': move.asin.name, 'sellerSKU': move.sku.name, 'condition': move.condition, 'quantity': int(move.product_uom_qty)})
