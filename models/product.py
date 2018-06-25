@@ -426,7 +426,7 @@ class ProductTemplate(models.Model):
         relation="stock.location.route", string="Category Routes",
         related='categ_id.total_route_ids')
     shipments = fields.One2many('stock.shipment.detail', 'product_tmpl_id', string='product shipment')
-    p_stock_move_ids = fields.One2many('stock.move', 'product_tmpl_id', help='Technical: used to show fba.')
+    p_stock_move_ids = fields.One2many('stock.move', 'product_tmpl_id', domain=[('state', '=', 'done'), ('shipments', '!=', False)], help='Technical: used to show fba.')
     asin = fields.One2many('product.asin', 'product_tmpl_id')
     asin_increase = fields.Float(string="Increase", compute='_compute_increase', store=True)
 
