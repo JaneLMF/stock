@@ -190,8 +190,8 @@
             <field name="inherit_id" ref="product.product_template_form_view"/>
             <field name="arch" type="xml">
                 <page name="general_information" position="inside">
-                        <field name="asin" widget="one2many_list">
-                            <tree string="Asin" editable="bottom">
+                        <field name="asin" widget="many2many_list">
+                            <tree string="Asin">
                                 <field name="name"/>
                                 <field name="rank"/>
                                 <field name="increase"/>

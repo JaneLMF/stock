@@ -427,7 +427,7 @@ class ProductTemplate(models.Model):
         related='categ_id.total_route_ids')
     shipments = fields.One2many('stock.shipment.detail', 'product_tmpl_id', string='product shipment')
     p_stock_move_ids = fields.One2many('stock.move', 'product_tmpl_id', domain=[('state', '=', 'done'), ('shipments', '!=', False)], help='Technical: used to show fba.')
-    asin = fields.One2many('product.asin', 'product_tmpl_id')
+    asin = fields.Many2many('product.asin', string='Product Asin')
     asin_increase = fields.Float(string="Increase", compute='_compute_increase', store=True)
 
     def _compute_increase(self):
@@ -589,8 +589,8 @@ class ProductAsin(models.Model):
     u_time = fields.Datetime(string='Last Use Time')
     rank = fields.Float(string='Best Sell Rank')
     increase = fields.Float(string='Product Pric Increase')
-    product_tmpl_id = fields.Many2one(
-        'product.template', 'Product Template',
+    product_tmpl_id = fields.Many2many(
+        'product.template', string='Product Template',
         help="Technical: used in views")
 
     @api.depends('name')
@@ -604,6 +604,9 @@ class ProductAsin(models.Model):
             raise ValidationError(_("Asin '%s' can't startswith spaces." % self.name))
         elif self.name.endswith(' '):
             raise ValidationError(_("Asin '%s' can't endswith spaces." % self.name))
+        asins = self.search([('name', '=', self.name)])
+        if len(asins) > 1:
+            raise ValidationError(_("Asin '%s' have been exist." % self.name))
         return True
 
 class ProductSku(models.Model):
