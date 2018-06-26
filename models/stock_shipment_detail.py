@@ -28,10 +28,17 @@ class ShipmentDetail(models.Model):
 	asin_url = fields.Char(string="asin_url", compute='_compute_asin_url', store=True)
 	condition = fields.Char(string="condition")
 	quantity = fields.Float(string='shipment quantity')
-	aws_received = fields.Float(string='shipment reveived quantity', compute='_compute_aws_reeived')
+	aws_received = fields.Float(string='shipment reveived quantity')
 	shipment_id = fields.Char(string="shipment id")
 	state = fields.Char(string="shipment state")
 	matched_received = fields.Boolean(string="aws received have bee matched quantity", default=False)
+
+	@api.one
+	def action_fetch_fba_quantity(self):
+		_logger.info("action_fetch_fba_quantity shipment_id '%s'" % str(self.shipment_id))
+		download_thread = threading.Thread(target=self._full_aws_received)
+		download_thread.start()
+		return True		
 
 	def _full_aws_received(self):
 		with api.Environment.manage():
@@ -42,13 +49,16 @@ class ShipmentDetail(models.Model):
 				changed = False
 				listShipment = ListInboundShipmentItems()
 				for r in self:
-					products = listShipment.getShipmentsByShipmentId(r.shipment_id)
-					sku_products = [x for x in products if x['SellerSKU'] == r.sku]
-					quantity_received = sku_products[0].get('QuantityReceived')
-					if quantity_received == r.quantity:
-						r.matched_received = True
-					r.aws_received = quantity_received
-					changed = True
+					_logger.info("sku '%s' shipment_id '%s' matched_received %s" % (str(r.sku), str(r.shipment_id), str(r.matched_received)))
+					if not r.matched_received:
+						products = listShipment.getShipmentsByShipmentId(r.shipment_id)
+						sku_products = [x for x in products if x['SellerSKU'] == r.sku]
+						quantity_received = float(sku_products[0].get('QuantityReceived'))
+						if quantity_received == r.quantity:
+							r.matched_received = True
+						_logger.info("sku '%s' shipment_id '%s'  quantity %s quantity_received %s matched_received %s" % (str(r.sku), str(r.shipment_id), str(r.quantity), str(quantity_received), str(r.matched_received)))
+						r.aws_received = quantity_received
+						changed = True
 				if changed:
 					new_cr.commit()
 			except Exception, e:
@@ -56,16 +66,6 @@ class ShipmentDetail(models.Model):
 			finally:
 				new_cr.close()
 			return {}
-
-	@api.depends('matched_received', 'sku', 'shipment_id', 'product_id')	
-	def _compute_aws_reeived(self):
-		for record in self:
-			_logger.info('enter the _compute_aws_reeived')
-			# _logger.warning("_compute_aws_reeived find_product product_id " + str(self.product_id))
-			if not record.matched_received:
-				download_thread = threading.Thread(target=self._full_aws_received)
-				download_thread.start()
-			return True
 
 	def _compute_create_date(self):
 		for record in self:

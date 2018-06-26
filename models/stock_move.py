@@ -186,7 +186,9 @@ class StockMove(models.Model):
             m_shipments = record.shipments
             amount = 0
             for s in m_shipments:
-               amount += s.aws_received
+                amount += s.aws_received
+                if s.aws_received != s.quantity:
+                    s.action_fetch_fba_quantity()
             record.aws_received_qty = amount
 
     @api.depends('asin')
