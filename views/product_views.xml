@@ -195,7 +195,7 @@
                                 <field name="name"/>
                                 <field name="rank"/>
                                 <field name="increase"/>
-                                <field name="asin_link"/>
+                                <field name="asin_link" widget="url"/>
                             </tree>
                         </field>
                 </page>
