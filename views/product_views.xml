@@ -199,6 +199,9 @@
                             </tree>
                         </field>
                 </page>
+                <group name="group_general" position="inside">
+                    <field name="buy_from" widget="url"/>
+                </group>
             </field>
         </record>
 

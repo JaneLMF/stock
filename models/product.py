@@ -428,8 +428,10 @@ class ProductTemplate(models.Model):
     shipments = fields.One2many('stock.shipment.detail', 'product_tmpl_id', string='product shipment')
     p_stock_move_ids = fields.One2many('stock.move', 'product_tmpl_id', domain=[('state', '=', 'done'), ('shipments', '!=', False)], help='Technical: used to show fba.')
     asin = fields.Many2many('product.asin', string='Product Asin')
-    asin_increase = fields.Float(string="Increase", compute='_compute_increase', store=True)
+    asin_increase = fields.Float(string="Increase", compute='_compute_increase')
+    buy_from = fields.Char(string="Buy From")
 
+    @api.depends('asin')
     def _compute_increase(self):
         for r in self:
             hight_increase = 0.0
