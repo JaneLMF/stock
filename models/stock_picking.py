@@ -918,8 +918,11 @@ class Picking(models.Model):
             if products and len(products) > 0:
                 _logger.warning(products)
                 c_shipment = CreateInboundShipment()
-                shipments = c_shipment.createShipments(products)
-                _logger.warning('Result: ' + str(shipments))
+                shipments_ret = c_shipment.createShipments(products)
+                _logger.warning('Result: ' + str(shipments_ret))
+                if shipments_ret.get('errCode') != 0:
+                    raise UserError(_(shipments_ret.get('msg')))
+                shipments = shipments_ret.get('result')
                 for shipment in shipments:
                     for p in shipment['products']:
                         p_sku = p.get('sellerSKU')

@@ -96,13 +96,26 @@ class MwsRequest(object):
 				return c_obj.text
 		return None
 				
+	def parse_err(self, body):
+		err_obj = {}
+		root = ET.fromstring(body)
+		error = root.find('mws:Error', self.ns)
+		err_obj['type'] = self.get_text(error, 'Type')
+		err_obj['code'] = self.get_text(error, 'Code')
+		err_obj['message'] = self.get_text(error, 'Message')
+		return err_obj
 
 	def submit(self):
 		url = self.get_url()
+		ret = {
+			'errCode': 0,
+			'msg': '操作成功',
+			'result': None
+		}
 		try:
 			r = requests.post(url, headers=self.get_headers())
 			if r.status_code == 200:
-				return self.parse_body(r.text)
+				ret['result'] = self.parse_body(r.text)
 			else:
 				if __name__ == '__main__':
 					print(r.status_code)
@@ -110,13 +123,18 @@ class MwsRequest(object):
 				else:
 					_logger.warning(r.status_code)
 					_logger.warning(r.text)
+				err = self.parse_err(r.text)
+				ret['errCode'] = -1
+				ret['msg'] = err.get('message')
 
 		except Exception, e:
 			if __name__ == '__main__':
 				print(e)
 			else:
 				_logger.warning(e)
-		return None
+			ret['errCode'] = -1000
+			ret['msg'] = '操作异常：' + e.message
+		return ret
 		
 class CreateInboundShipmentPlan(MwsRequest):
 	def __init__(self):
@@ -203,14 +221,21 @@ class CreateInboundShipment(MwsRequest):
 
 	def createShipments(self, products):
 		c_plans = CreateInboundShipmentPlan()
-		plans = c_plans.createInboundShipmentPlan(products, address)
+		plans_ret = c_plans.createInboundShipmentPlan(products, address)
+		if plans_ret.get('errCode') != 0:
+			return plans_ret
+		plans = plans_ret.get('result')
 		shipments = []
 		if plans:
 			for plan in plans:
-				shipment = self.createInboundShipment(plan['shipmentId'], plan['destinationCenterId'], address, plan['products'])
+				shipment_ret = self.createInboundShipment(plan['shipmentId'], plan['destinationCenterId'], address, plan['products'])
+				if shipment_ret.get('errCode') != 0:
+					return shipment_ret
+				shipment = shipment_ret.get('result')
 				shipment['products'] = plan['products']
 				shipments.append(shipment)
-		return shipments
+		plans_ret['result'] = shipments
+		return plans_ret
 
 class ListInboundShipmentItemsByNextToken(MwsRequest):
 	def __init__(self):
