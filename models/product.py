@@ -8,6 +8,10 @@ from odoo.tools.float_utils import float_round
 from datetime import datetime
 import operator as py_operator
 
+import logging
+
+_logger = logging.getLogger(__name__)
+
 OPERATORS = {
     '<': py_operator.lt,
     '>': py_operator.gt,
@@ -429,7 +433,15 @@ class ProductTemplate(models.Model):
     p_stock_move_ids = fields.One2many('stock.move', 'product_tmpl_id', domain=[('state', '=', 'done'), ('shipments', '!=', False)], help='Technical: used to show fba.')
     asin = fields.Many2many('product.asin', string='Product Asin')
     asin_increase = fields.Float(string="Increase", compute='_compute_increase')
+    sku_ids = fields.Many2many('product.sku', string='SKU', compute="_compute_sku")
     buy_from = fields.Char(string="Buy From")
+
+
+    @api.depends('asin')
+    def _compute_sku(self):
+        for r in self:
+            asin_ids = [asin.id for asin in r.asin]
+            r.sku_ids = self.env['product.sku'].search([('asin_id', 'in', asin_ids)]).ids 
 
     @api.depends('asin')
     def _compute_increase(self):
@@ -617,6 +629,66 @@ class ProductSku(models.Model):
     name = fields.Char(string="Product Sku", required=True)
     asin_id = fields.Many2one('product.asin', 'Product Asin')
     c_time = fields.Datetime(string='Create Time', default=fields.Datetime.now)
+    # product_tmpl_id = fields.Many2many(
+    #     'product.template', string="Product Template",
+    #     related='asin_id.product_tmpl_id')
+    
+    # product_tmpl_id = fields.Many2many(
+    #     relation="product.template", string="Product Template",
+    #     related='asin_id.product_tmpl_id')
+    aws_received = fields.Float('AWS Received', compute='_compute_received_count')
+    # order = fields.One2many('fba.report.settlement', compute)
+    order_num = fields.Integer('Order', compute='_compute_order_num')
+    # refund = fields.One2many('', )
+    refund_num = fields.Integer('Refund', compute='_compute_refund_num')
+    returns_rate = fields.Char('Return Rate', compute='_compute_returns_rate')
+    # reimbursement = fields.One2many('', 'Reimbursement')
+    reimbursement_num = fields.Integer('Reimbursement', compute='_compute_reimbursement_num')
+    # returns = fields.One2many('', 'Returns')
+    returns_num = fields.Integer('Returns', compute='_compute_returns_num')
+    # removal = fields.One2many('', 'Removal')
+    removal_num = fields.Integer('Removal', compute='_compute_removal_num')
+
+    def _compute_received_count(self):
+        for r in self:
+            shipments = self.env['stock.shipment.detail'].search([('sku', '=', r.name)])
+            r.aws_received = sum(s.aws_received for s in shipments)
+
+    @api.depends('name')
+    def _compute_order_num(self):
+        for r in self:
+            reports = self.env['fba.report.settlement'].search([('transaction_type', '=', 'Order'), ('sku', '=', r.name)])
+            r.order_num = sum(report.quantity_purchased for report in reports)
+
+    @api.depends('name')
+    def _compute_refund_num(self):
+        for r in self:
+            r.refund_num = self.env['fba.report.settlement'].search_count([('transaction_type', '=', 'Refund'), ('price_type', '=', 'Principal'), ('sku', '=', r.name)])
+
+    @api.depends('refund_num', 'order_num')
+    def _compute_returns_rate(self):
+        for r in self:
+            if r.order_num != 0:
+                result = float(r.refund_num) / float(r.order_num) * 100
+                r.returns_rate = str('%.2f' % result) + '%'
+
+    @api.depends('name')
+    def _compute_reimbursement_num(self):
+        for r in self:
+            reports = self.env['fba.report.settlement'].search([('transaction_type', 'not in', ['Order', 'Refund']), ('sku', '=', r.name)])
+            r.reimbursement_num = sum(report.quantity_purchased for report in reports)
+
+    @api.depends('name')
+    def _compute_returns_num(self):
+        for r in self:
+            reports = self.env['fba.report.returns'].search([('sku', '=', r.name)])
+            r.returns_num = sum(report.quantity for report in reports)
+
+    @api.depends('name')
+    def _compute_removal_num(self):
+        for r in self:
+            reports = self.env['fba.report.removal'].search([('order_status', '=', 'Completed'), ('sku', '=', r.name)])
+            r.removal_num = sum(report.shipped_quantity for report in reports)
 
     @api.constrains('name')
     def _check_sku(self):
@@ -625,3 +697,31 @@ class ProductSku(models.Model):
         elif self.name.endswith(' '):
             raise ValidationError(_("Sku '%s' can't endswith spaces." % self.name))
         return True
+
+    @api.multi
+    def action_view_reimbursement(self):
+        """显示赔偿"""
+        action = self.env.ref('stock.act_product_sku_reimbursement_open').read()[0]
+        action['domain'] = [('transaction_type', 'not in', ['Order', 'Refund']), ('sku', '=', self.name)]
+        action['context'] = {}
+        return action
+
+    @api.multi
+    def action_view_refund(self):
+        """显示退款"""
+        action = self.env.ref('stock.act_product_sku_refund_open').read()[0]
+        action['domain'] = [('transaction_type', '=', 'Refund'), ('price_type', '=', 'Principal'), ('sku', '=', self.name)]
+        action['context'] = {}
+        return action
+
+    @api.multi
+    def action_view_return(self):
+        """显示退货"""
+        action = self.env.ref('stock.act_product_sku_return_open').read()[0]
+        action['domain'] = [('sku', '=', self.name)]
+        action['context'] = {}
+        return action
+
+
+
+

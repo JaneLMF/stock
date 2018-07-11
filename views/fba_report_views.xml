@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<data>
+		<record id="view_settlement_reimbursement_tree" model="ir.ui.view">
+			<field name="name">fba.report.settlement_reimbursement.tree</field>
+			<field name="model">fba.report.settlement</field>
+			<field name="arch" type="xml">
+				<tree>
+					<field name="order_id"/>
+					<field name="sku"/>
+					<field name="transaction_type"/>
+					<field name="quantity_purchased"/>
+					<field name="posted_date"/>
+				</tree>
+			</field>
+		</record>
+		<record id="view_settlement_refund_tree" model="ir.ui.view">
+			<field name="name">fba.report.settlement_refund.tree</field>
+			<field name="model">fba.report.settlement</field>
+			<field name="arch" type="xml">
+				<tree>
+					<field name="order_id"/>
+					<field name="sku"/>
+					<field name="price_amount"/>
+					<field name="order_date"/>
+					<field name="posted_date"/>
+					<field name="quantity_purchased"/>
+				</tree>
+			</field>
+		</record>
+		<record id="view_settlement_return_tree" model="ir.ui.view">
+			<field name="name">fba.report.returns.tree</field>
+			<field name="model">fba.report.returns</field>
+			<field name="arch" type="xml">
+				<tree>
+					<field name="order_id"/>
+					<field name="sku"/>
+					<field name="reason"/>
+					<field name="detailed_disposition"/>
+					<field name="return_date"/>
+					<field name="quantity"/>
+				</tree>
+			</field>
+		</record>
+		<record id="view_report_info_tree" model="ir.ui.view">
+			<field name="name">fba.report.info.tree</field>
+			<field name="model">fba.report.info</field>
+			<field name="arch" type="xml">
+				<tree>
+					<field name="name" />
+					<field name="update_date" />
+					<field name="from_date" />
+					<field name="end_date" />
+					<field name="next_update_date" />
+				</tree>
+			</field>
+		</record>
+
+		<record id="act_product_sku_reimbursement_open" model="ir.actions.act_window">
+			<field name="name">SettlementReimbursement</field>
+			<field name="res_model">fba.report.settlement</field>
+			<field name="view_id" ref="view_settlement_reimbursement_tree"/>
+		</record>
+
+		<record id="act_product_sku_refund_open" model="ir.actions.act_window">
+			<field name="name">SettlementRefund</field>
+			<field name="res_model">fba.report.settlement</field>
+			<field name="view_id" ref="view_settlement_refund_tree"/>
+		</record>
+
+		<record id="act_product_sku_return_open" model="ir.actions.act_window">
+			<field name="name">Returns</field>
+			<field name="res_model">fba.report.returns</field>
+			<field name="view_id" ref="view_settlement_return_tree"/>
+		</record>
+
+		<record id="fba_report_info" model="ir.actions.act_window">
+			<field name="name">ReportInfo</field>
+			<field name="res_model">fba.report.info</field>
+			<field name="view_id" ref="view_report_info_tree"/>
+		</record>
+		<menuitem action="fba_report_info" id="fba_report_info_menu" parent="stock.menu_warehouse_report" sequence="100"/>
+	</data>
+</odoo>

@@ -169,7 +169,7 @@
                 </group>
             </field>
         </record>
-
+        <!-- for product page fba -->
         <record model="ir.ui.view" id="product_fba_form_view">
             <field name="name">product.fba</field>
             <field name="inherit_id" ref="product.product_template_form_view"/>
@@ -183,7 +183,64 @@
                 </notebook>
             </field>
         </record>
-        <!-- for product asin -->
+
+        <!-- Product sku -->
+        <record id="view_sku_tree" model="ir.ui.view">
+            <field name="name">product.sku.tree</field>
+            <field name="model">product.sku</field>
+            <field eval="12" name="priority"/>
+            <field name="arch" type="xml">
+                <tree string="product_sku">
+                    <field name="asin_id"/>
+                    <field name="name"/>
+                    <field name="aws_received"/>
+                    <field name="order_num"/>
+                    <field name="refund_num"/>
+                    <field name="returns_rate"/>
+                    <field name="reimbursement_num"/>
+                    <field name="returns_num"/>
+                    <field name="removal_num"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="produuct_sku_form_view" model="ir.ui.view">
+            <field name="name">product.sku.form</field>
+            <field name="model">product.sku</field>
+            <field name="arch" type="xml">
+                <form string="product_sku">
+                    <field name="name"/>
+                    <group>
+                        <field name="refund_num"/>
+                        <button
+                            string="view_refund"
+                            type="object"
+                            name="action_view_refund"
+                            class="oe_stat_button"
+                            attrs="{'invisible': [('refund_num', '=', 0)]}"/>
+                    </group>
+                    <group>
+                        <field name="returns_num"/>
+                        <button
+                            string="view_returns"
+                            type="object"
+                            name="action_view_return"
+                            attrs="{'invisible': [('returns_num', '=', 0)]}"/>
+                    </group>
+                    <group>
+                        <field name="reimbursement_num"/>
+                        <button
+                            string="view_reimbursement"
+                            type="object"
+                            name="action_view_reimbursement"
+                            class="oe_stat_button"
+                            attrs="{'invisible': [('reimbursement_num', '=', 0)]}"/>
+                    </group>
+                </form>
+            </field>
+        </record>
+
+        <!-- for product asin and sku -->
         <record id="view_template_property_form_asin" model="ir.ui.view">
             <field name="name">product.template.stock.property.form.inherit</field>
             <field name="model">product.template</field>
@@ -202,6 +259,9 @@
                 <group name="group_general" position="inside">
                     <field name="buy_from" widget="url"/>
                 </group>
+                <page name="sales" position="inside">
+                    <field name="sku_ids" options="{'reload_on_button': True}" context="{'tree_view_ref':'product.view_sku_tree'}"/>
+                </page>
             </field>
         </record>
 
