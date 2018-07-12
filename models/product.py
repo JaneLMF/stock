@@ -432,7 +432,7 @@ class ProductTemplate(models.Model):
     shipments = fields.One2many('stock.shipment.detail', 'product_tmpl_id', string='product shipment')
     p_stock_move_ids = fields.One2many('stock.move', 'product_tmpl_id', domain=[('state', '=', 'done'), ('shipments', '!=', False)], help='Technical: used to show fba.')
     asin = fields.Many2many('product.asin', string='Product Asin')
-    asin_increase = fields.Float(string="Increase", compute='_compute_increase')
+    asin_increase = fields.Float(string="Increase", compute='_compute_increase', store=True)
     sku_ids = fields.Many2many('product.sku', string='SKU', compute="_compute_sku")
     buy_from = fields.Char(string="Buy From")
 
@@ -443,7 +443,7 @@ class ProductTemplate(models.Model):
             asin_ids = [asin.id for asin in r.asin]
             r.sku_ids = self.env['product.sku'].search([('asin_id', 'in', asin_ids)]).ids 
 
-    @api.depends('asin')
+    @api.depends('asin.increase')
     def _compute_increase(self):
         for r in self:
             hight_increase = 0.0
