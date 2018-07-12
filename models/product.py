@@ -617,9 +617,9 @@ class ProductAsin(models.Model):
         begin = self.name[:1].lower()
         end = self.name[-1].lower()
         if not ((begin >= 'a' and begin <= 'z') or (begin >= '0' and begin <= '9')):
-            raise ValidationError(_("Asin '%s' can't startswith %s." % (self.name, begin)))
-        elif not ((end >= 'a' and end <= 'z') or (end >= '0' and end <= '9'))::
-            raise ValidationError(_("Asin '%s' can't endswith %s." % (self.name, end)))
+            raise ValidationError(_("Asin '%s' can't startswith '%s'." % (self.name, begin)))
+        elif not ((end >= 'a' and end <= 'z') or (end >= '0' and end <= '9')):
+            raise ValidationError(_("Asin '%s' can't endswith '%s'." % (self.name, end)))
         asins = self.search([('name', '=', self.name)])
         if len(asins) > 1:
             raise ValidationError(_("Asin '%s' have been exist." % self.name))
@@ -697,9 +697,9 @@ class ProductSku(models.Model):
         begin = self.name[:1].lower()
         end = self.name[-1].lower()
         if not ((begin >= 'a' and begin <= 'z') or (begin >= '0' and begin <= '9')):
-            raise ValidationError(_("Sku '%s' can't startswith %s." % (self.name, begin)))
-        elif not ((end >= 'a' and end <= 'z') or (end >= '0' and end <= '9'))::
-            raise ValidationError(_("Sku '%s' can't endswith %s." % (self.name, end)))
+            raise ValidationError(_("Sku '%s' can't startswith '%s'." % (self.name, begin)))
+        elif not ((end >= 'a' and end <= 'z') or (end >= '0' and end <= '9')):
+            raise ValidationError(_("Sku '%s' can't endswith '%s'." % (self.name, end)))
         return True
 
     @api.multi
