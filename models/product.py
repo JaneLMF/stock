@@ -160,6 +160,7 @@ class Product(models.Model):
             if wh_res.get(product_id):
                 if wh_res.get(product_id).get(local_wh_name):
                     wh_res[product_id][local_wh_name] += qty
+                    continue
             else:
                 wh_res[product_id] = dict()
             wh_res[product_id][local_wh_name] = qty
