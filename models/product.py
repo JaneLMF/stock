@@ -150,6 +150,19 @@ class Product(models.Model):
         moves_in_res = dict((item['product_id'][0], item['product_qty']) for item in Move.read_group(domain_move_in_todo, ['product_id', 'product_qty'], ['product_id'], orderby='id'))
         moves_out_res = dict((item['product_id'][0], item['product_qty']) for item in Move.read_group(domain_move_out_todo, ['product_id', 'product_qty'], ['product_id'], orderby='id'))
         quants_res = dict((item['product_id'][0], item['qty']) for item in Quant.read_group(domain_quant, ['product_id', 'qty'], ['product_id'], orderby='id'))
+        all_quants_res = Quant.search(domain_quant)
+        # prepare warehouse group
+        wh_res = dict()
+        for quant in all_quants_res:
+            product_id = quant['product_id'].id
+            local_wh_name = quant['location_id'].location_id.name
+            qty = quant['qty']
+            if wh_res.get(product_id):
+                if wh_res.get(product_id).get(local_wh_name):
+                    wh_res[product_id][local_wh_name] += qty
+            else:
+                wh_res[product_id] = dict()
+            wh_res[product_id][local_wh_name] = qty
         if dates_in_the_past:
             # Calculate the moves that were done before now to calculate back in time (as most questions will be recent ones)
             domain_move_in_done = [('state', '=', 'done'), ('date', '>', to_date)] + domain_move_in_done
@@ -170,7 +183,7 @@ class Product(models.Model):
             res[product.id]['virtual_available'] = float_round(
                 qty_available + res[product.id]['incoming_qty'] - res[product.id]['outgoing_qty'],
                 precision_rounding=product.uom_id.rounding)
-
+            res[product.id]['warehouse_grp'] = wh_res.get(product.id)
         return res
 
     def _get_domain_locations(self):
@@ -435,7 +448,9 @@ class ProductTemplate(models.Model):
     asin_increase = fields.Float(string="Increase", compute='_compute_increase', store=True)
     sku_ids = fields.Many2many('product.sku', string='SKU', compute="_compute_sku")
     buy_from = fields.Char(string="Buy From")
-
+    local_wh = fields.Float(string="Local Warehouse", compute="_compute_quantities")
+    return_wh = fields.Float(string="Return Warehouse", compute="_compute_quantities")
+    fba_wh = fields.Float(string="FBA Warehouse", compute="_compute_quantities")
 
     @api.depends('asin')
     def _compute_sku(self):
@@ -459,6 +474,11 @@ class ProductTemplate(models.Model):
             template.virtual_available = res[template.id]['virtual_available']
             template.incoming_qty = res[template.id]['incoming_qty']
             template.outgoing_qty = res[template.id]['outgoing_qty']
+            wh = res[template.id]['warehouse_grp']
+            if wh:
+                template.local_wh = wh.get('201', 0)
+                template.return_wh = wh.get('blue', 0)
+                template.fba_wh = wh.get('FBA', 0)
 
     def _product_available(self, name, arg):
         return self._compute_quantities_dict()
@@ -482,6 +502,7 @@ class ProductTemplate(models.Model):
                 "virtual_available": virtual_available,
                 "incoming_qty": incoming_qty,
                 "outgoing_qty": outgoing_qty,
+                "warehouse_grp": variants_available[p.id]["warehouse_grp"]
             }
         return prod_available
 

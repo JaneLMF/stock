@@ -53,9 +53,15 @@
                 </tree>
                 <field name="uom_id" position="before">
                     <field name="qty_available"/>
-                    <field name="virtual_available"/>
+                    <field name="local_wh"/>
+                    <field name="fba_wh"/>
+                    <field name="return_wh"/>
+                    <field name="virtual_available" invisible="1"/>
                     <field name="asin_increase"/>
                 </field>
+                <field name="list_price" position="replace" invisible="1" />
+                <field name="categ_id" position="replace" invisible="1" />
+                <field name="type" position="replace" invisible="1" />
             </field>
         </record>
 
